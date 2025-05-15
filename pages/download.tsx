@@ -4,7 +4,7 @@ export default function DownloadPage() {
   return (
     <main className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-gray-800">
       <h1 className="text-3xl font-bold mb-6">🧱 프로그램 다운로드</h1>
-      <p className="mb-6">버튼을 눌러 '타이핑타이쿤'을 시작해보세요.</p>
+      <p className="mb-6">버튼을 눌러 TAP TYCOON을 시작해보세요.</p>
 
       {/* 🔽 여기에 EXE 또는 ZIP 링크를 넣어 */}
       <a

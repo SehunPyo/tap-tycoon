@@ -8,7 +8,7 @@ export default function DownloadPage() {
 
       {/* 🔽 여기에 EXE 또는 ZIP 링크를 넣어 */}
       <a
-        href="https://github.com/SehunPyo/tap-tycoon_setup/releases/download/v1.0.2.1/TapTycoon_Setup_v1.0.2.exe"
+        href="https://github.com/SehunPyo/tap-tycoon_setup/releases/download/v1.0.2.2/TapTycoon_Setup_v1.0.2.2.exe"
         download
         className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800"
       >

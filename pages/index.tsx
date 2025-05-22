@@ -1,31 +1,28 @@
 // pages/index.tsx
 import Link from 'next/link';
-import { useState, useEffect } from 'react'; 
-import { supabase } from '../lib/supabaseClient'; 
-import type { User } from '@supabase/supabase-js'; 
+// import { useState, useEffect } from 'react'; // 사용자 상태 확인이 버튼 표시에 필요 없어지면 제거 가능
+// import { supabase } from '../lib/supabaseClient';
+// import type { User } from '@supabase/supabase-js';
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null); 
-  const [loading, setLoading] = useState(true); 
+  // const [user, setUser] = useState<User | null>(null); // 더 이상 버튼 표시에 사용하지 않음
+  // const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false); // 인증 상태 변경 시 로딩 상태도 업데이트
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, []);
+  // useEffect(() => { // 이 useEffect는 다른 목적으로 남겨둘 수 있음 (예: 사용자 분석 등)
+  //   const getSession = async () => {
+  //     const { data: { session } } = await supabase.auth.getSession();
+  //     setUser(session?.user ?? null);
+  //     setLoading(false);
+  //   };
+  //   getSession();
+  //   const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+  //     setUser(session?.user ?? null);
+  //     setLoading(false);
+  //   });
+  //   return () => {
+  //     authListener?.subscription.unsubscribe();
+  //   };
+  // }, []);
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-gray-800">
@@ -55,41 +52,17 @@ export default function Home() {
       <p></p>
       <p className="mb-4">-----------------------------------------------------</p>
       <div className="flex gap-4">
-        {loading ? (
-          <p className="text-gray-600">사용자 정보 확인 중...</p>
-        ) : user ? (
-          // --- 로그인 된 상태 ---
-          <>
-            <Link href="/change-nickname" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-              닉네임 변경
-            </Link>
-            <button 
-              onClick={async () => {
-                setLoading(true); // 로그아웃 시작 시 로딩
-                await supabase.auth.signOut();
-                // setUser(null); // onAuthStateChange가 처리하므로 명시적 null 설정은 선택적
-                setLoading(false); // 로그아웃 완료 후 로딩 해제
-              }} 
-              className="border border-gray-500 text-gray-700 px-4 py-2 rounded hover:bg-gray-200"
-            >
-              로그아웃
-            </button>
-          </>
-        ) : (
-          // --- 로그인 안 된 상태 ---
-          <>
-            {/* "회원가입" 버튼 왼쪽에 "로그인" 버튼 추가 */}
-            <Link href="/signin" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              로그인
-            </Link>
-            <Link href="/signup" className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
-              회원가입
-            </Link>
-          </>
-        )}
+        {/* --- [수정] 항상 표시되는 버튼들 --- */}
+        <Link href="/change-nickname" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+          닉네임 변경
+        </Link>
+        <Link href="/signup" className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+          회원가입
+        </Link>
         <Link href="/download" className="border border-black px-4 py-2 rounded hover:bg-gray-100">
           프로그램 다운로드
         </Link>
+         {/* --- [수정 끝] --- */}
       </div>
     </main>
   )

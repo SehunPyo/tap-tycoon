@@ -5,6 +5,7 @@ export default function Home() {
     <main className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-gray-800">
       <h1 className="text-3xl font-bold mb-6">Welcome, Tap Tycoon</h1>
       <p className="mb-4">--------------------------- 🧱 버 전 관 리 🧱 ---------------------------</p>
+<<<<<<< HEAD
       <p></p>
       <p className="mb-4">ver 1.0.2.2 Update</p>
       <p></p>
@@ -28,6 +29,15 @@ export default function Home() {
       <p className="mb-4">    -   건물 외 구매 가능한 아이템 구매 시, 코인뿐만 아니라 총 자산도 함께 차감되도록 수정되었습니다.</p>
       <p className="mb-4">    -   간헐적으로 발생하던 펫 아이템 구매 관련 오류(펫 없음 메시지, 수량 문제 등)가 개선되었습니다.</p>
       <p></p>
+=======
+      <p className="mb-4">ver 1.0.2</p>
+      <p className="mb-4">--------------------------- 🗽 공 지 사 항 🗽 ---------------------------</p>
+      <p className="mb-4">•   타자 1회 = 1원! 건물을 사고, 랭킹을 올리고 미니게임을 즐겨보세요!</p>
+      <p className="mb-4">•   보유 자산 / 보유 코인 / 보유 건물 등은 매월 1일에 초기화 됩니다! 아낌 없이 사용하세요!</p>
+      <p className="mb-4">--------------------------- ✨ 새로운 기능 ✨ ---------------------------</p>
+      <p className="mb-4">•  펫 기능이 추가되었습니다.</p>
+      <p className="mb-4">•  랭킹에 마우스를 올려보세요! 닉네임과 TOP 10이 표시됩니다.</p>
+>>>>>>> 3f1fab90ca274c6e609553de592456759b7eb1e7
       <p className="mb-4">-----------------------------------------------------</p>
       <div className="flex gap-4">
         <Link href="/signup" className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">

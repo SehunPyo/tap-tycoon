@@ -1,9 +1,35 @@
-import Link from 'next/link'
+// pages/index.tsx
+import Link from 'next/link';
+import { useState, useEffect } from 'react'; // useEffect, useState 임포트
+import { supabase } from '../lib/supabaseClient'; // supabase 클라이언트 임포트
+import type { User } from '@supabase/supabase-js'; // User 타입 임포트
 
 export default function Home() {
+  const [user, setUser] = useState<User | null>(null); // 사용자 상태 추가
+  const [loading, setLoading] = useState(true); // 로딩 상태 추가
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setLoading(false);
+    };
+
+    getSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <main className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-gray-800">
       <h1 className="text-3xl font-bold mb-6">Welcome, Tap Tycoon</h1>
+      {/* ... (기존 공지사항 내용) ... */}
       <p className="mb-4">--------------------------- 🧱 <b>버 전 관 리</b> 🧱 ---------------------------</p>
       <p></p>
       <p className="mb-4">ver 1.0.2</p>
@@ -28,12 +54,38 @@ export default function Home() {
       <p></p>
       <p className="mb-4">-----------------------------------------------------</p>
       <div className="flex gap-4">
-        <Link href="/signup" className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
-          회원가입
-        </Link>
+        {/* --- [수정] 로그인 상태에 따라 버튼 표시 변경 --- */}
+        {loading ? (
+          <p>로딩 중...</p>
+        ) : user ? (
+          <>
+            <Link href="/change-nickname" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              닉네임 변경
+            </Link>
+            <button 
+              onClick={async () => {
+                await supabase.auth.signOut();
+                // router.push('/'); // 필요시 로그아웃 후 홈으로 리디렉션
+              }} 
+              className="border border-gray-500 text-gray-700 px-4 py-2 rounded hover:bg-gray-200"
+            >
+              로그아웃
+            </button>
+          </>
+        ) : (
+          <>
+            <Link href="/signup" className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+              회원가입
+            </Link>
+            <Link href="/signin" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              로그인
+            </Link>
+          </>
+        )}
         <Link href="/download" className="border border-black px-4 py-2 rounded hover:bg-gray-100">
           프로그램 다운로드
         </Link>
+         {/* --- [수정 끝] --- */}
       </div>
     </main>
   )

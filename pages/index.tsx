@@ -6,7 +6,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold mb-6">Welcome, Tap Tycoon</h1>
       <p className="mb-4">--------------------------- 🧱 <b>버 전 관 리</b> 🧱 ---------------------------</p>
       <p></p>
-      <p className="mb-4">ver 1.0.3</p>
+      <p className="mb-4">ver 1.0.2</p>
       <p></p>
       <p className="mb-4">--------------------------- 🗽 <b>공 지 사 항</b> 🗽 ---------------------------</p>
       <p></p>

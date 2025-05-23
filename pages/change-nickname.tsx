@@ -106,6 +106,7 @@ export default function ChangeNicknamePage() {
       handleAuthError(error, 'login');
     } else if (data.user) {
       setUser(data.user); // 로그인 성공 시 user 상태 업데이트
+      // 로그인 성공 후 닉네임 변경 폼을 보여주기 위해 router를 사용할 필요가 없습니다.
     } else {
       setLoginError('로그인에 실패했습니다. (사용자 정보 없음)');
     }

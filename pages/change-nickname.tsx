@@ -1,151 +1,135 @@
 // pages/change-nickname.tsx
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useRouter } from 'next/router'
-import type { User, AuthError } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 
 export default function ChangeNickname() {
   const router = useRouter()
+
+  // 사용자 & 로딩 상태
   const [user, setUser] = useState<User | null>(null)
+  const [pageLoading, setPageLoading] = useState(true)
+
+  // 닉네임 상태
   const [currentNickname, setCurrentNickname] = useState('')
   const [newNickname, setNewNickname] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [pageLoading, setPageLoading] = useState(true)
 
-  /**
-   * 사용자 ID로 닉네임 조회 후 문자열 혹은 null 반환
-   */
-  const fetchNicknameForUser = async (userId: string): Promise<string | null> => {
+  // 닉네임 가져오는 함수 (useCallback으로 메모이제이션)
+  const fetchNicknameForUser = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('users')
       .select('nickname')
       .eq('id', userId)
       .single()
-
-    if (error) {
-      console.error('닉네임 조회 실패:', error.message)
-      setError('닉네임 정보를 불러오는 데 실패했습니다.')
-      return null
+    if (!error && data?.nickname) {
+      setCurrentNickname(data.nickname)
     }
-    return data.nickname
-  }
-
-  // 1) 페이지 최초 로드 시 getUser() 호출
-  useEffect(() => {
-    const getInitialData = async () => {
-      type GetUserResult = {
-        data: { user: User | null }
-        error: AuthError | null
-      }
-      const response: GetUserResult = await supabase.auth.getUser()
-      const initialUser = response.data.user
-
-      if (initialUser) {
-        setUser(initialUser)
-        const nickname = await fetchNicknameForUser(initialUser.id)
-        if (nickname) setCurrentNickname(nickname)
-      }
-
-      setPageLoading(false)
-    }
-
-    getInitialData()
   }, [])
 
-  // 2) 로딩 끝났는데 user가 없으면 /signup 으로 리다이렉트
   useEffect(() => {
-    if (!pageLoading && !user) {
-      router.replace('/signup')
+    // 1) 초기 세션 하나만 체크
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user)
+        fetchNicknameForUser(session.user.id)
+      }
+      setPageLoading(false)
+    })
+
+    // 2) 이후 로그인/로그아웃 이벤트만 처리
+    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      if (session?.user) {
+        setUser(session.user)
+        fetchNicknameForUser(session.user.id)
+      } else {
+        setUser(null)
+      }
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
     }
-  }, [pageLoading, user, router])
+  }, [fetchNicknameForUser])
 
   const handleChangeNickname = async () => {
     setError('')
-    if (!user) {
-      setError('사용자 정보가 없어 닉네임을 변경할 수 없습니다. 다시 로그인 해주세요.')
-      return
-    }
+    if (!user) return
 
     const trimmed = newNickname.trim()
     if (trimmed.length < 2 || trimmed.length > 10) {
-      setError('닉네임은 2자 이상 10자 이하로 입력해주세요.')
+      setError('닉네임은 2~10자 사이여야 합니다.')
       return
     }
     if (trimmed === currentNickname) {
-      setError('현재 닉네임과 동일합니다. 다른 닉네임을 입력해주세요.')
+      setError('현재 닉네임과 동일합니다.')
       return
     }
 
     setLoading(true)
-
-    // 닉네임 중복 확인
-    const { data: existCheck, error: checkError } = await supabase
+    // 중복 확인
+    const { data: exist, error: chkErr } = await supabase
       .from('users')
       .select('id')
       .eq('nickname', trimmed)
       .maybeSingle()
-
-    if (checkError) {
-      console.error('중복 확인 실패:', checkError.message)
-      setError('닉네임 중복 확인 중 오류가 발생했습니다.')
+    if (chkErr) {
+      setError('중복 확인 중 오류')
       setLoading(false)
       return
     }
-    if (existCheck) {
+    if (exist) {
       setError('이미 사용 중인 닉네임입니다.')
       setLoading(false)
       return
     }
 
-    // 닉네임 업데이트
-    const { error: updateError } = await supabase
+    // 업데이트
+    const { error: updErr } = await supabase
       .from('users')
       .update({ nickname: trimmed })
       .eq('id', user.id)
+    setLoading(false)
 
-    if (updateError) {
-      console.error('변경 실패:', updateError.message)
-      setError('닉네임 변경 중 오류가 발생했습니다.')
+    if (updErr) {
+      setError('변경 중 오류가 발생했습니다.')
     } else {
-      alert('닉네임이 성공적으로 변경되었습니다!')
+      alert('닉네임이 변경되었습니다!')
       setCurrentNickname(trimmed)
       setNewNickname('')
     }
-
-    setLoading(false)
   }
 
-  if (pageLoading) {
-    return <div className="text-center py-20">로딩 중...</div>
-  }
-
-  // user가 없을 땐 두 번째 useEffect에서 리다이렉트 처리하므로 아무것도 렌더링하지 않음
+  // 로딩 중
+  if (pageLoading) return <div className="text-center py-20">로딩 중...</div>
+  // 로그인 안 된 경우 /login으로
   if (!user) {
+    router.replace('/login')
     return null
   }
 
+  // 닉네임 변경 폼
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-gray-800">
-      <div className="w-full max-w-sm p-6 bg-gray-50 shadow-md rounded-lg">
-        <h1 className="text-2xl font-bold mb-6 text-center">닉네임 변경</h1>
-        <p className="mb-4 text-sm text-center">
-          현재 닉네임: <span className="font-semibold">{currentNickname}</span>
-        </p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white p-4">
+      <div className="max-w-sm w-full bg-gray-50 p-6 rounded shadow">
+        <h1 className="text-xl font-bold mb-4 text-center">닉네임 변경</h1>
+        <p className="mb-2">현재: <strong>{currentNickname}</strong></p>
         <input
           type="text"
-          placeholder="새 닉네임 입력"
+          placeholder="새 닉네임"
           value={newNickname}
           onChange={(e) => setNewNickname(e.target.value)}
-          className="p-2 border border-gray-300 rounded w-full mb-4"
+          className="w-full p-2 mb-3 border rounded"
         />
-        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <button
           onClick={handleChangeNickname}
           disabled={loading}
-          className="bg-black text-white px-4 py-2 rounded w-full hover:bg-gray-800 disabled:bg-gray-400"
+          className="w-full bg-green-600 text-white py-2 rounded disabled:bg-gray-400"
         >
-          {loading ? '변경 중...' : '닉네임 변경'}
+          {loading ? '변경 중…' : '변경하기'}
         </button>
       </div>
     </div>

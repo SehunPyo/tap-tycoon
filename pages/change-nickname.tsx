@@ -102,45 +102,63 @@ export default function ChangeNicknamePage() {
   };
 
   const validateAndCheckNewNickname = async (name: string): Promise<boolean> => {
-    const trimmed = name.trim();
-    if (!trimmed) return setNicknameChangeError('새 닉네임을 입력해주세요.'), false;
-    if (trimmed.length < 2 || trimmed.length > 10)
-      return setNicknameChangeError('닉네임은 2자 이상 10자 이하로 입력해주세요.'), false;
-    if (trimmed === currentNickname)
-      return setNicknameChangeError('현재 닉네임과 동일합니다.'), false;
+  const trimmed = name.trim();
 
-    setNicknameChangeError('');
-    setNicknameChangeLoading(true);
+  if (!trimmed) {
+    setNicknameChangeError('새 닉네임을 입력해주세요.');
+    return false;
+  }
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('nickname')
-      .eq('nickname', trimmed)
-      .neq('id', user?.id)
-      .maybeSingle();
+  if (trimmed.length < 2 || trimmed.length > 10) {
+    setNicknameChangeError('닉네임은 2자 이상 10자 이하로 입력해주세요.');
+    return false;
+  }
 
-    setNicknameChangeLoading(false);
+  if (trimmed === currentNickname) {
+    setNicknameChangeError('현재 닉네임과 동일합니다.');
+    return false;
+  }
 
-    if (error) return setNicknameChangeError('닉네임 확인 중 오류 발생'), false;
-    if (data) return setNicknameChangeError('이미 사용 중인 닉네임입니다.'), false;
+  setNicknameChangeError('');
+  setNicknameChangeLoading(true);
 
-    return true;
+  const { data, error } = await supabase
+    .from('users')
+    .select('nickname')
+    .eq('nickname', trimmed)
+    .neq('id', user?.id)
+    .maybeSingle();
+
+  setNicknameChangeLoading(false);
+
+  if (error) {
+    setNicknameChangeError('닉네임 확인 중 오류 발생');
+    return false;
+  }
+
+  if (data) {
+    setNicknameChangeError('이미 사용 중인 닉네임입니다.');
+    return false;
+  }
+
+  return true;
   };
+
 
   const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!user) {
       setNicknameChangeError('사용자 정보를 찾을 수 없습니다.');
       return;
     }
-
 
     setSuccessMessage('');
     setNicknameChangeError('');
     setNicknameChangeLoading(true);
 
     const isValid = await validateAndCheckNewNickname(newNickname);
-    if (!isValid) return setNicknameChangeLoading(false), undefined;
+    if (!isValid) return; // 여기만 더 깔끔하게!
 
     const { error } = await supabase
       .from('users')
@@ -154,8 +172,10 @@ export default function ChangeNicknamePage() {
       setCurrentNickname(newNickname.trim());
       setNewNickname('');
     }
+
     setNicknameChangeLoading(false);
   };
+
 
   if (pageLoading) {
     return <div className="flex items-center justify-center min-h-screen bg-white"><p>정보를 불러오는 중...</p></div>;

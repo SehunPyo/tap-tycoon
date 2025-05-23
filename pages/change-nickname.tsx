@@ -8,7 +8,6 @@ import type { User, AuthError } from '@supabase/supabase-js';
 export default function ChangeNicknamePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  // const [session, setSession] = useState<Session | null>(null); // 더 이상 사용되지 않는 'session' 변수 제거
 
   // 로그인 폼 상태
   const [loginEmail, setLoginEmail] = useState('');
@@ -76,14 +75,13 @@ export default function ChangeNicknamePage() {
     getInitialUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      // newSession의 user 속성을 직접 사용하고, user 상태를 업데이트
       if (newSession?.user) {
-        if (!user || user.id !== newSession.user.id) { // user가 변경된 경우에만 다시 로드
+        if (!user || user.id !== newSession.user.id) {
           setPageLoading(true);
           await fetchUserAndNickname(newSession.user);
           setPageLoading(false);
         }
-      } else { // 세션이 없거나 로그아웃된 경우
+      } else {
         setUser(null);
         setCurrentNickname('');
       }
@@ -92,7 +90,7 @@ export default function ChangeNicknamePage() {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [user]); // 의존성 배열에 user를 넣으면 user 객체가 변경될 때마다 useEffect가 다시 실행됨
+  }, [user]);
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -107,7 +105,7 @@ export default function ChangeNicknamePage() {
     if (error) {
       handleAuthError(error, 'login');
     } else if (data.user) {
-      // onAuthStateChange 리스너가 user 상태를 업데이트하고, useEffect가 나머지 로직을 처리할 것임
+      setUser(data.user); // 로그인 성공 시 user 상태 업데이트
     } else {
       setLoginError('로그인에 실패했습니다. (사용자 정보 없음)');
     }
@@ -117,13 +115,16 @@ export default function ChangeNicknamePage() {
   const validateAndCheckNewNickname = async (name: string): Promise<boolean> => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setNicknameChangeError('새 닉네임을 입력해주세요.'); return false;
+      setNicknameChangeError('새 닉네임을 입력해주세요.');
+      return false;
     }
     if (trimmedName.length < 2 || trimmedName.length > 10) {
-      setNicknameChangeError('닉네임은 2자 이상 10자 이하로 입력해주세요.'); return false;
+      setNicknameChangeError('닉네임은 2자 이상 10자 이하로 입력해주세요.');
+      return false;
     }
     if (trimmedName === currentNickname) {
-      setNicknameChangeError('현재 닉네임과 동일합니다. 다른 닉네임을 입력해주세요.'); return false;
+      setNicknameChangeError('현재 닉네임과 동일합니다. 다른 닉네임을 입력해주세요.');
+      return false;
     }
 
     setNicknameChangeError('');
@@ -137,10 +138,12 @@ export default function ChangeNicknamePage() {
     setNicknameChangeLoading(false);
 
     if (fetchError) {
-      setNicknameChangeError('닉네임 확인 중 오류 발생.'); return false;
+      setNicknameChangeError('닉네임 확인 중 오류 발생.');
+      return false;
     }
     if (data) {
-      setNicknameChangeError('이미 사용 중인 닉네임입니다.'); return false;
+      setNicknameChangeError('이미 사용 중인 닉네임입니다.');
+      return false;
     }
     return true;
   };
@@ -148,7 +151,8 @@ export default function ChangeNicknamePage() {
   const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
-      setNicknameChangeError('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.'); return;
+      setNicknameChangeError('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
+      return;
     }
     setSuccessMessage('');
     setNicknameChangeError('');
@@ -156,7 +160,8 @@ export default function ChangeNicknamePage() {
 
     const isNicknameValid = await validateAndCheckNewNickname(newNickname);
     if (!isNicknameValid) {
-      setNicknameChangeLoading(false); return;
+      setNicknameChangeLoading(false);
+      return;
     }
 
     const { error: updateError } = await supabase
@@ -182,6 +187,7 @@ export default function ChangeNicknamePage() {
     );
   }
 
+  // 로그인되지 않은 경우 로그인 폼 표시
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">
@@ -220,6 +226,7 @@ export default function ChangeNicknamePage() {
     );
   }
 
+  // 로그인된 경우 닉네임 변경 폼 표시
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">
       <div className="w-full max-w-sm p-6 bg-gray-50 shadow-md rounded-lg">

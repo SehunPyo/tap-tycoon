@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/router';
 
 export default function Home() {
-  const [user, setUser] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string | null>(null);
   const router = useRouter();
 
@@ -13,20 +13,26 @@ export default function Home() {
     const getUserData = async () => {
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
-      setUser(user);
+
+      if (user && !error) {
+        setUserId(user.id);
+      } else {
+        console.error('사용자 정보 로드 실패:', error?.message);
+      }
     };
 
     getUserData();
-  }, []); // ✅ 무한 루프 방지
+  }, []);
 
   useEffect(() => {
     const fetchNickname = async () => {
-      if (user) {
+      if (userId) {
         const { data, error } = await supabase
           .from('users')
           .select('nickname')
-          .eq('id', user.id)
+          .eq('id', userId)
           .single();
 
         if (error) {
@@ -38,7 +44,7 @@ export default function Home() {
     };
 
     fetchNickname();
-  }, [user]);
+  }, [userId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

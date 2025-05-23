@@ -14,7 +14,7 @@ export default function ChangeNickname() {
   const [pageLoading, setPageLoading] = useState(true)
 
   /**
-   * 사용자 ID로 닉네임을 조회해서 문자열 혹은 null을 반환
+   * 사용자 ID로 닉네임 조회 후 문자열 혹은 null 반환
    */
   const fetchNicknameForUser = async (userId: string): Promise<string | null> => {
     const { data, error } = await supabase
@@ -31,26 +31,20 @@ export default function ChangeNickname() {
     return data.nickname
   }
 
+  // 1) 페이지 최초 로드 시 getUser() 호출
   useEffect(() => {
     const getInitialData = async () => {
-      // ──────────────────────────────────────────────
-      // 1) getUser() 반환 타입을 명시적으로 선언
       type GetUserResult = {
         data: { user: User | null }
         error: AuthError | null
       }
-      // 2) response 변수에 명시적 타입을 붙여서 any 추론 제거
       const response: GetUserResult = await supabase.auth.getUser()
-      // 3) 이제 안전하게 user 꺼내쓰기
       const initialUser = response.data.user
-      // ──────────────────────────────────────────────
 
       if (initialUser) {
         setUser(initialUser)
         const nickname = await fetchNicknameForUser(initialUser.id)
-        if (nickname) {
-          setCurrentNickname(nickname)
-        }
+        if (nickname) setCurrentNickname(nickname)
       }
 
       setPageLoading(false)
@@ -59,12 +53,20 @@ export default function ChangeNickname() {
     getInitialData()
   }, [])
 
+  // 2) 로딩 끝났는데 user가 없으면 /signup 으로 리다이렉트
+  useEffect(() => {
+    if (!pageLoading && !user) {
+      router.replace('/signup')
+    }
+  }, [pageLoading, user, router])
+
   const handleChangeNickname = async () => {
     setError('')
     if (!user) {
       setError('사용자 정보가 없어 닉네임을 변경할 수 없습니다. 다시 로그인 해주세요.')
       return
     }
+
     const trimmed = newNickname.trim()
     if (trimmed.length < 2 || trimmed.length > 10) {
       setError('닉네임은 2자 이상 10자 이하로 입력해주세요.')
@@ -76,6 +78,7 @@ export default function ChangeNickname() {
     }
 
     setLoading(true)
+
     // 닉네임 중복 확인
     const { data: existCheck, error: checkError } = await supabase
       .from('users')
@@ -117,19 +120,9 @@ export default function ChangeNickname() {
     return <div className="text-center py-20">로딩 중...</div>
   }
 
+  // user가 없을 땐 두 번째 useEffect에서 리다이렉트 처리하므로 아무것도 렌더링하지 않음
   if (!user) {
-    return (
-      <div className="text-center py-20">
-        로그인된 사용자가 없습니다.
-        <br />
-        <button
-          onClick={() => router.push('/')}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          홈으로 가기
-        </button>
-      </div>
-    )
+    return null
   }
 
   return (

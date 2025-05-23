@@ -1,121 +1,166 @@
 // pages/change-nickname.tsx
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
-import { useRouter } from 'next/router'
-import type { User } from '@supabase/supabase-js'
+import type { User, AuthError } from '@supabase/supabase-js'
 
 export default function ChangeNickname() {
-  const router = useRouter()
-
-  // 사용자 & 로딩 상태
-  const [user, setUser] = useState<User | null>(null)
+  // 페이지 로딩 / 사용자 상태
   const [pageLoading, setPageLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
 
-  // 닉네임 상태
+  // --- 로그인 폼 상태 ---
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+
+  // --- 닉네임 변경 폼 상태 ---
   const [currentNickname, setCurrentNickname] = useState('')
   const [newNickname, setNewNickname] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [nickError, setNickError] = useState('')
+  const [nickLoading, setNickLoading] = useState(false)
 
-  // 닉네임 가져오는 함수 (useCallback으로 메모이제이션)
-  const fetchNicknameForUser = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('nickname')
-      .eq('id', userId)
-      .single()
-    if (!error && data?.nickname) {
-      setCurrentNickname(data.nickname)
+  // 1) 페이지 최초 로드 시 이미 세션이 있으면 user 세팅 + 닉네임 로드
+  useEffect(() => {
+    const init = async () => {
+      type GetUserResult = { data: { user: User | null }; error: AuthError | null }
+      const { data: { user: existingUser } } = (await supabase.auth.getUser()) as GetUserResult
+
+      if (existingUser) {
+        setUser(existingUser)
+        // 기존 닉네임 가져오기
+        const { data, error } = await supabase
+          .from('users')
+          .select('nickname')
+          .eq('id', existingUser.id)
+          .single()
+        if (!error && data.nickname) {
+          setCurrentNickname(data.nickname)
+        }
+      }
+
+      setPageLoading(false)
     }
+    init()
   }, [])
 
-  useEffect(() => {
-    // 1) 초기 세션 하나만 체크
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        fetchNicknameForUser(session.user.id)
-      }
-      setPageLoading(false)
-    })
+  // 로그인 처리
+  const handleLogin = async () => {
+    setLoginError('')
+    setLoginLoading(true)
 
-    // 2) 이후 로그인/로그아웃 이벤트만 처리
-    const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        fetchNicknameForUser(session.user.id)
-      } else {
-        setUser(null)
-      }
-    })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    setLoginLoading(false)
 
-    return () => {
-      listener.subscription.unsubscribe()
+    if (error) {
+      setLoginError(error.message)
+      return
     }
-  }, [fetchNicknameForUser])
+    if (data.user) {
+      setUser(data.user)
+      // 로그인 직후 닉네임 로드
+      const { data: nickData, error: nickErr } = await supabase
+        .from('users')
+        .select('nickname')
+        .eq('id', data.user.id)
+        .single()
+      if (!nickErr && nickData.nickname) {
+        setCurrentNickname(nickData.nickname)
+      }
+    }
+  }
 
+  // 닉네임 변경 처리
   const handleChangeNickname = async () => {
-    setError('')
-    if (!user) return
-
+    setNickError('')
     const trimmed = newNickname.trim()
+
     if (trimmed.length < 2 || trimmed.length > 10) {
-      setError('닉네임은 2~10자 사이여야 합니다.')
+      setNickError('닉네임은 2~10자 사이여야 합니다.')
       return
     }
     if (trimmed === currentNickname) {
-      setError('현재 닉네임과 동일합니다.')
+      setNickError('현재 닉네임과 동일합니다.')
       return
     }
 
-    setLoading(true)
-    // 중복 확인
+    setNickLoading(true)
+    // 중복 체크
     const { data: exist, error: chkErr } = await supabase
       .from('users')
       .select('id')
       .eq('nickname', trimmed)
       .maybeSingle()
+
     if (chkErr) {
-      setError('중복 확인 중 오류')
-      setLoading(false)
+      setNickError('중복 확인 중 오류가 발생했습니다.')
+      setNickLoading(false)
       return
     }
     if (exist) {
-      setError('이미 사용 중인 닉네임입니다.')
-      setLoading(false)
+      setNickError('이미 사용 중인 닉네임입니다.')
+      setNickLoading(false)
       return
     }
 
-    // 업데이트
+    // 실제 업데이트
     const { error: updErr } = await supabase
       .from('users')
       .update({ nickname: trimmed })
-      .eq('id', user.id)
-    setLoading(false)
+      .eq('id', user!.id)
 
+    setNickLoading(false)
     if (updErr) {
-      setError('변경 중 오류가 발생했습니다.')
+      setNickError('닉네임 변경 중 오류가 발생했습니다.')
     } else {
-      alert('닉네임이 변경되었습니다!')
+      alert('닉네임이 성공적으로 변경되었습니다!')
       setCurrentNickname(trimmed)
       setNewNickname('')
     }
   }
 
-  // 로딩 중
-  if (pageLoading) return <div className="text-center py-20">로딩 중...</div>
-  // 로그인 안 된 경우 /login으로
-  if (!user) {
-    router.replace('/login')
-    return null
+  // 페이지 초기 로딩
+  if (pageLoading) {
+    return <div className="text-center py-20">로딩 중...</div>
   }
 
-  // 닉네임 변경 폼
+  // ① user가 없으면 로그인 폼 렌더
+  if (!user) {
+    return (
+      <div className="max-w-sm mx-auto mt-20 p-6 bg-gray-50 rounded shadow">
+        <h2 className="text-center text-xl font-bold mb-4">로그인 후 이용</h2>
+        <input
+          type="email"
+          placeholder="이메일"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 mb-3 border rounded"
+        />
+        <input
+          type="password"
+          placeholder="비밀번호"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 mb-3 border rounded"
+        />
+        {loginError && <p className="text-red-500 text-sm mb-2">{loginError}</p>}
+        <button
+          onClick={handleLogin}
+          disabled={loginLoading}
+          className="w-full bg-blue-600 text-white py-2 rounded disabled:bg-gray-400"
+        >
+          {loginLoading ? '로그인 중…' : '로그인'}
+        </button>
+      </div>
+    )
+  }
+
+  // ② user가 있으면 닉네임 변경 폼 렌더
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white p-4">
       <div className="max-w-sm w-full bg-gray-50 p-6 rounded shadow">
-        <h1 className="text-xl font-bold mb-4 text-center">닉네임 변경</h1>
-        <p className="mb-2">현재: <strong>{currentNickname}</strong></p>
+        <h2 className="text-center text-xl font-bold mb-4">닉네임 변경</h2>
+        <p className="mb-2">현재 닉네임: <strong>{currentNickname}</strong></p>
         <input
           type="text"
           placeholder="새 닉네임"
@@ -123,13 +168,13 @@ export default function ChangeNickname() {
           onChange={(e) => setNewNickname(e.target.value)}
           className="w-full p-2 mb-3 border rounded"
         />
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        {nickError && <p className="text-red-500 text-sm mb-2">{nickError}</p>}
         <button
           onClick={handleChangeNickname}
-          disabled={loading}
+          disabled={nickLoading}
           className="w-full bg-green-600 text-white py-2 rounded disabled:bg-gray-400"
         >
-          {loading ? '변경 중…' : '변경하기'}
+          {nickLoading ? '변경 중…' : '변경하기'}
         </button>
       </div>
     </div>

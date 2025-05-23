@@ -36,7 +36,12 @@ export default function ChangeNicknamePage() {
         message = '이미 가입된 이메일입니다.';
       }
     }
-    context === 'login' ? setLoginError(message) : setNicknameChangeError(message);
+    if (context === 'login') {
+      setLoginError(message);
+    } else {
+      setNicknameChangeError(message);
+    }
+
   };
 
   const fetchUserAndNickname = async (loggedInUser: User) => {

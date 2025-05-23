@@ -1,5 +1,3 @@
-// change-nickname.tsx
-
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useRouter } from 'next/router'
@@ -13,8 +11,8 @@ export default function ChangeNickname() {
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
 
-  // 닉네임을 가져오는 함수는 그대로 유지
-  const fetchNicknameForUser = async (userId: string) => { // ★★★ 인자를 userId로 명확히
+  // 닉네임을 가져오는 함수
+  const fetchNicknameForUser = async (userId: string) => {
     console.log('fetchNicknameForUser 호출됨'); // 디버깅용
     const { data, error } = await supabase
       .from('users')
@@ -49,27 +47,11 @@ export default function ChangeNickname() {
 
     getInitialData();
 
-    // ★★★ onAuthStateChange 리스너 제거 (이 페이지에서는 직접적인 auth 상태 변화를 감지하여 닉네임을 다시 가져올 필요가 적음)
-    // 만약 이 페이지에서 로그인/로그아웃 상태 변화에 따라 즉시 닉네임을 업데이트해야 한다면 유지하되,
-    // fetchNicknameForUser를 호출하는 로직을 신중하게 고려해야 함.
-    // 현재 문제의 원인일 가능성이 높으므로 일단 제거해봅니다.
-    // const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    //   console.log('onAuthStateChange fired:', _event);
-    //   if (session?.user) {
-    //     setUser(session.user);
-    //     const nickname = await fetchNicknameForUser(session.user.id);
-    //     if (nickname) {
-    //       setCurrentNickname(nickname);
-    //     }
-    //   } else {
-    //     setUser(null);
-    //     setCurrentNickname('');
-    //   }
-    // });
-
-    // return () => {
-    //   authListener?.subscription.unsubscribe();
-    // };
+    // ★★★ onAuthStateChange 리스너 제거됨 ★★★
+    // 이 페이지에서는 직접적인 auth 상태 변화를 실시간으로 감지하여
+    // 닉네임을 다시 가져올 필요가 적으므로 제거했습니다.
+    // 만약 이 페이지에서 로그인/로그아웃 상태 변화에 따라 즉시 닉네임을 업데이트해야 한다면
+    // 해당 로직을 다시 추가하되, 불필요한 반복 쿼리가 발생하지 않도록 신중하게 구현해야 합니다.
   }, []); // ✅ 빈 배열로 수정하여 단 1회만 실행
 
   const handleChangeNickname = async () => {
@@ -82,7 +64,6 @@ export default function ChangeNickname() {
       setError('현재 닉네임과 동일합니다. 다른 닉네임을 입력해주세요.');
       return;
     }
-
 
     setLoading(true)
 
@@ -110,7 +91,7 @@ export default function ChangeNickname() {
     const { error: updateError } = await supabase
       .from('users')
       .update({ nickname: newNickname.trim() })
-      .eq('id', user.id) // ✅ user 객체가 존재함을 확신할 수 있도록 user 검사 추가 필요
+      .eq('id', user.id) 
 
     if (updateError) {
       console.error('닉네임 변경 실패:', updateError.message)

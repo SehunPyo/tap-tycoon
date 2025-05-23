@@ -129,7 +129,11 @@ export default function ChangeNicknamePage() {
 
   const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!user) return setNicknameChangeError('사용자 정보를 찾을 수 없습니다.'), undefined;
+    if (!user) {
+      setNicknameChangeError('사용자 정보를 찾을 수 없습니다.');
+      return;
+    }
+
 
     setSuccessMessage('');
     setNicknameChangeError('');

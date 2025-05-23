@@ -1,3 +1,5 @@
+// change-nickname.tsx
+
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useRouter } from 'next/router'
@@ -11,49 +13,64 @@ export default function ChangeNickname() {
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
 
-  const fetchUserAndNickname = async (u: any) => {
+  // 닉네임을 가져오는 함수는 그대로 유지
+  const fetchNicknameForUser = async (userId: string) => { // ★★★ 인자를 userId로 명확히
+    console.log('fetchNicknameForUser 호출됨'); // 디버깅용
     const { data, error } = await supabase
       .from('users')
       .select('nickname')
-      .eq('id', u.id)
+      .eq('id', userId)
       .single()
 
     if (error) {
       console.error('닉네임 가져오기 실패:', error.message)
       setError('닉네임 정보를 불러오는 데 실패했습니다.')
-      return
+      return null; // 실패 시 null 반환
     }
 
-    setCurrentNickname(data.nickname || '')
+    return data.nickname; // 성공 시 닉네임 반환
   }
 
   useEffect(() => {
-    const getInitialUser = async () => {
-      const { data: { user: initialUser } } = await supabase.auth.getUser()
+    // 페이지 로드 시 초기 사용자 및 닉네임 가져오기
+    const getInitialData = async () => {
+      const { data: { user: initialUser } } = await supabase.auth.getUser();
+      console.log('getInitialData: initialUser', initialUser?.id); // 디버깅용
 
       if (initialUser) {
-        setUser(initialUser)
-        await fetchUserAndNickname(initialUser)
+        setUser(initialUser);
+        const nickname = await fetchNicknameForUser(initialUser.id);
+        if (nickname) {
+          setCurrentNickname(nickname);
+        }
       }
-      setPageLoading(false)
-    }
+      setPageLoading(false);
+    };
 
-    getInitialUser()
+    getInitialData();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        await fetchUserAndNickname(session.user)
-      } else {
-        setUser(null)
-        setCurrentNickname('')
-      }
-    })
+    // ★★★ onAuthStateChange 리스너 제거 (이 페이지에서는 직접적인 auth 상태 변화를 감지하여 닉네임을 다시 가져올 필요가 적음)
+    // 만약 이 페이지에서 로그인/로그아웃 상태 변화에 따라 즉시 닉네임을 업데이트해야 한다면 유지하되,
+    // fetchNicknameForUser를 호출하는 로직을 신중하게 고려해야 함.
+    // 현재 문제의 원인일 가능성이 높으므로 일단 제거해봅니다.
+    // const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    //   console.log('onAuthStateChange fired:', _event);
+    //   if (session?.user) {
+    //     setUser(session.user);
+    //     const nickname = await fetchNicknameForUser(session.user.id);
+    //     if (nickname) {
+    //       setCurrentNickname(nickname);
+    //     }
+    //   } else {
+    //     setUser(null);
+    //     setCurrentNickname('');
+    //   }
+    // });
 
-    return () => {
-      authListener?.subscription.unsubscribe()
-    }
-  }, []) // ✅ 빈 배열로 수정하여 단 1회만 실행
+    // return () => {
+    //   authListener?.subscription.unsubscribe();
+    // };
+  }, []); // ✅ 빈 배열로 수정하여 단 1회만 실행
 
   const handleChangeNickname = async () => {
     setError('')
@@ -61,9 +78,15 @@ export default function ChangeNickname() {
       setError('닉네임은 2자 이상 10자 이하로 입력해주세요.')
       return
     }
+    if (newNickname.trim() === currentNickname) { // 현재 닉네임과 동일한 경우 변경 불필요
+      setError('현재 닉네임과 동일합니다. 다른 닉네임을 입력해주세요.');
+      return;
+    }
+
 
     setLoading(true)
 
+    // 닉네임 중복 확인
     const { data: existCheck, error: checkError } = await supabase
       .from('users')
       .select('id')
@@ -71,6 +94,7 @@ export default function ChangeNickname() {
       .maybeSingle()
 
     if (checkError) {
+      console.error('닉네임 중복 확인 중 오류:', checkError.message);
       setError('닉네임 중복 확인 중 오류가 발생했습니다.')
       setLoading(false)
       return
@@ -82,17 +106,18 @@ export default function ChangeNickname() {
       return
     }
 
+    // 닉네임 업데이트
     const { error: updateError } = await supabase
       .from('users')
       .update({ nickname: newNickname.trim() })
-      .eq('id', user.id)
+      .eq('id', user.id) // ✅ user 객체가 존재함을 확신할 수 있도록 user 검사 추가 필요
 
     if (updateError) {
       console.error('닉네임 변경 실패:', updateError.message)
       setError('닉네임 변경 중 오류가 발생했습니다.')
     } else {
       alert('닉네임이 성공적으로 변경되었습니다!')
-      setCurrentNickname(newNickname.trim())
+      setCurrentNickname(newNickname.trim()) // UI 상태만 업데이트
       setNewNickname('')
     }
 

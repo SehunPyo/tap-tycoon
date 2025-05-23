@@ -1,14 +1,14 @@
 // pages/change-nickname.tsx
-import { useState, useEffect, FormEvent } from 'react'; // FormEvent 임포트
+import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useRouter } from 'next/router';
+// import { useRouter } from 'next/router'; // 'router'가 사용되지 않으므로 임포트 제거 (만약 다른 라우팅이 필요하다면 유지)
 import Link from 'next/link';
-import type { User, AuthError, Session } from '@supabase/supabase-js'; // Session 임포트
+import type { User, AuthError, Session } from '@supabase/supabase-js';
 
 export default function ChangeNicknamePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null); // 세션 상태 추가
+  // const router = useRouter(); // 'router' 변수 제거 (사용되지 않음)
+  const [user, setUser] = useState<User | null>(null); 
+  const [session, setSession] = useState<Session | null>(null); // 'session' 상태는 리스너에서 사용되므로 유지 (혹은 useEffect 내부로 이동하여 제거 가능)
 
   // 로그인 폼 상태
   const [loginEmail, setLoginEmail] = useState('');
@@ -25,8 +25,6 @@ export default function ChangeNicknamePage() {
   
   const [pageLoading, setPageLoading] = useState(true);
 
-
-  // Supabase Auth 오류 한글 처리 함수 (signup.tsx에서 가져오거나 유사하게 정의)
   const handleAuthError = (authError: AuthError | null, context: 'login' | 'signup' = 'login') => {
     let message = `${context === 'login' ? '로그인' : '처리'} 중 오류가 발생했습니다. 다시 시도해주세요.`;
     if (authError && authError.message) {
@@ -63,8 +61,11 @@ export default function ChangeNicknamePage() {
 
   useEffect(() => {
     const getInitialSession = async () => {
-      const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
-      setSession(initialSession); // 세션 상태 설정
+      const { data: { session: initialSession }, error: initialSessionError } = await supabase.auth.getSession(); // 'sessionError' 변수명 변경 또는 사용
+      setSession(initialSession); 
+      if (initialSessionError) { // initialSessionError 사용
+          console.error('초기 세션 가져오기 오류:', initialSessionError.message);
+      }
       if (initialSession?.user) {
         await fetchUserAndNickname(initialSession.user);
       }
@@ -72,12 +73,11 @@ export default function ChangeNicknamePage() {
     };
     getInitialSession();
 
-    // 인증 상태 변경 리스너
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      setSession(newSession); // 세션 상태 업데이트
+      setSession(newSession); 
       if (newSession?.user) {
-        if (!user || user.id !== newSession.user.id) { // 새 유저거나 유저가 변경된 경우
-            setPageLoading(true); // 닉네임 로드 전 로딩 표시
+        if (!user || user.id !== newSession.user.id) { 
+            setPageLoading(true); 
             await fetchUserAndNickname(newSession.user);
             setPageLoading(false);
         }
@@ -90,9 +90,9 @@ export default function ChangeNicknamePage() {
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [user]); // user가 변경될 때도 useEffect 재실행 (로그아웃 후 재로그인 등)
+  }, [user]); 
 
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => { // 타입 수정
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError('');
     setLoginLoading(true);
@@ -106,16 +106,13 @@ export default function ChangeNicknamePage() {
       handleAuthError(error, 'login');
     } else if (data.user) {
       // onAuthStateChange가 user와 session을 업데이트하고, useEffect가 fetchUserAndNickname을 호출할 것임
-      // 여기서 직접 fetchUserAndNickname을 호출할 수도 있지만, onAuthStateChange에 맡기는 것이 상태 흐름을 단순화.
     } else {
       setLoginError('로그인에 실패했습니다. (사용자 정보 없음)');
     }
     setLoginLoading(false);
   };
 
-
   const validateAndCheckNewNickname = async (name: string): Promise<boolean> => {
-    // signup.tsx의 validateAndCheckNickname과 거의 동일한 로직
     const trimmedName = name.trim();
     if (!trimmedName) {
       setNicknameChangeError('새 닉네임을 입력해주세요.'); return false;
@@ -124,7 +121,7 @@ export default function ChangeNicknamePage() {
       setNicknameChangeError('닉네임은 2자 이상 10자 이하로 입력해주세요.'); return false;
     }
     if (trimmedName === currentNickname) {
-      setNicknameChangeError('현재 닉네임과 동일합니다.'); return false;
+      setNicknameChangeError('현재 닉네임과 동일합니다. 다른 닉네임을 입력해주세요.'); return false;
     }
 
     setNicknameChangeError('');
@@ -146,7 +143,7 @@ export default function ChangeNicknamePage() {
     return true;
   };
 
-  const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => { // 타입 수정
+  const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
       setNicknameChangeError('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.'); return;
@@ -169,12 +166,11 @@ export default function ChangeNicknamePage() {
       setNicknameChangeError('닉네임 변경 중 오류가 발생했습니다.');
     } else {
       setSuccessMessage('닉네임이 성공적으로 변경되었습니다!');
-      setCurrentNickname(newNickname.trim());
-      setNewNickname('');
+      setCurrentNickname(newNickname.trim()); 
+      setNewNickname(''); 
     }
     setNicknameChangeLoading(false);
   };
-
 
   if (pageLoading) {
     return (
@@ -184,7 +180,6 @@ export default function ChangeNicknamePage() {
     );
   }
 
-  // 로그인 폼 표시 조건: user 객체가 없을 때 (즉, 로그인 안 된 상태)
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">
@@ -223,7 +218,6 @@ export default function ChangeNicknamePage() {
     );
   }
 
-  // 로그인 후 닉네임 변경 폼 표시
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">
       <div className="w-full max-w-sm p-6 bg-gray-50 shadow-md rounded-lg">

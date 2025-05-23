@@ -1,227 +1,145 @@
-// pages/change-nickname.tsx
-import { useState, useEffect, FormEvent } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import Link from 'next/link';
-import type { User, AuthError } from '@supabase/supabase-js';
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient'
+import { useRouter } from 'next/router'
 
-export default function ChangeNicknamePage() {
-  const [user, setUser] = useState<User | null>(null);
+export default function ChangeNickname() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [currentNickname, setCurrentNickname] = useState('')
+  const [newNickname, setNewNickname] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
-  // 로그인 폼 상태
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
-
-  // 닉네임 변경 폼 상태
-  const [currentNickname, setCurrentNickname] = useState('');
-  const [newNickname, setNewNickname] = useState('');
-  const [nicknameChangeError, setNicknameChangeError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [nicknameChangeLoading, setNicknameChangeLoading] = useState(false);
-
-  const [pageLoading, setPageLoading] = useState(true);
-
-  const handleAuthError = (authError: AuthError | null, context: 'login' | 'signup' = 'login') => {
-    let message = `${context === 'login' ? '로그인' : '처리'} 중 오류가 발생했습니다. 다시 시도해주세요.`;
-    if (authError?.message) {
-      console.error(`Auth Error (${context}): `, authError.message);
-      if (authError.message.includes('Invalid login credentials')) {
-        message = '이메일 또는 비밀번호가 올바르지 않습니다.';
-      } else if (authError.message.includes('Password should be at least 6 characters')) {
-        message = '비밀번호는 6자 이상이어야 합니다.';
-      } else if (authError.message.includes('Unable to validate email address: invalid format')) {
-        message = '유효하지 않은 이메일 형식입니다.';
-      } else if (authError.message.includes('User already registered')) {
-        message = '이미 가입된 이메일입니다.';
-      }
-    }
-    if (context === 'login') {
-      setLoginError(message);
-    } else {
-      setNicknameChangeError(message);
-    }
-
-  };
-
-  const fetchUserAndNickname = async (loggedInUser: User) => {
-    setUser(loggedInUser);
+  const fetchUserAndNickname = async (u: any) => {
     const { data, error } = await supabase
       .from('users')
       .select('nickname')
-      .eq('id', loggedInUser.id)
-      .single();
+      .eq('id', u.id)
+      .single()
+
     if (error) {
-      console.error('현재 닉네임 가져오기 오류:', error.message);
-      setNicknameChangeError('현재 닉네임 정보를 가져오는데 실패했습니다.');
-    } else if (data) {
-      setCurrentNickname(data.nickname);
+      console.error('닉네임 가져오기 실패:', error.message)
+      setError('닉네임 정보를 불러오는 데 실패했습니다.')
+      return
     }
-  };
+
+    setCurrentNickname(data.nickname || '')
+  }
 
   useEffect(() => {
     const getInitialUser = async () => {
-      const { data: { user: initialUser }, error } = await supabase.auth.getUser();
-      if (error) console.error('초기 사용자 정보 가져오기 오류:', error.message);
+      const { data: { user: initialUser } } = await supabase.auth.getUser()
+
       if (initialUser) {
-        await fetchUserAndNickname(initialUser);
+        setUser(initialUser)
+        await fetchUserAndNickname(initialUser)
       }
-      setPageLoading(false);
-    };
-    getInitialUser();
+      setPageLoading(false)
+    }
+
+    getInitialUser()
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        if (!user || user.id !== session.user.id) {
-          setPageLoading(true);
-          await fetchUserAndNickname(session.user);
-          setPageLoading(false);
-        }
+        setUser(session.user)
+        await fetchUserAndNickname(session.user)
       } else {
-        setUser(null);
-        setCurrentNickname('');
+        setUser(null)
+        setCurrentNickname('')
       }
-    });
+    })
 
-    return () => authListener?.subscription.unsubscribe();
-  }, [user]);
-
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoginError('');
-    setLoginLoading(true);
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
-
-    if (error) {
-      handleAuthError(error, 'login');
-    } else if (data.user) {
-      setUser(data.user);
-    } else {
-      setLoginError('로그인에 실패했습니다. (사용자 정보 없음)');
+    return () => {
+      authListener?.subscription.unsubscribe()
     }
-    setLoginLoading(false);
-  };
+  }, []) // ✅ 빈 배열로 수정하여 단 1회만 실행
 
-  const validateAndCheckNewNickname = async (name: string): Promise<boolean> => {
-  const trimmed = name.trim();
-
-  if (!trimmed) {
-    setNicknameChangeError('새 닉네임을 입력해주세요.');
-    return false;
-  }
-
-  if (trimmed.length < 2 || trimmed.length > 10) {
-    setNicknameChangeError('닉네임은 2자 이상 10자 이하로 입력해주세요.');
-    return false;
-  }
-
-  if (trimmed === currentNickname) {
-    setNicknameChangeError('현재 닉네임과 동일합니다.');
-    return false;
-  }
-
-  setNicknameChangeError('');
-  setNicknameChangeLoading(true);
-
-  const { data, error } = await supabase
-    .from('users')
-    .select('nickname')
-    .eq('nickname', trimmed)
-    .neq('id', user?.id)
-    .maybeSingle();
-
-  setNicknameChangeLoading(false);
-
-  if (error) {
-    setNicknameChangeError('닉네임 확인 중 오류 발생');
-    return false;
-  }
-
-  if (data) {
-    setNicknameChangeError('이미 사용 중인 닉네임입니다.');
-    return false;
-  }
-
-  return true;
-  };
-
-
-  const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!user) {
-      setNicknameChangeError('사용자 정보를 찾을 수 없습니다.');
-      return;
+  const handleChangeNickname = async () => {
+    setError('')
+    if (!newNickname || newNickname.trim().length < 2 || newNickname.length > 10) {
+      setError('닉네임은 2자 이상 10자 이하로 입력해주세요.')
+      return
     }
 
-    setSuccessMessage('');
-    setNicknameChangeError('');
-    setNicknameChangeLoading(true);
+    setLoading(true)
 
-    const isValid = await validateAndCheckNewNickname(newNickname);
-    if (!isValid) return; // 여기만 더 깔끔하게!
+    const { data: existCheck, error: checkError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('nickname', newNickname.trim())
+      .maybeSingle()
 
-    const { error } = await supabase
+    if (checkError) {
+      setError('닉네임 중복 확인 중 오류가 발생했습니다.')
+      setLoading(false)
+      return
+    }
+
+    if (existCheck) {
+      setError('이미 사용 중인 닉네임입니다.')
+      setLoading(false)
+      return
+    }
+
+    const { error: updateError } = await supabase
       .from('users')
       .update({ nickname: newNickname.trim() })
-      .eq('id', user.id);
+      .eq('id', user.id)
 
-    if (error) {
-      setNicknameChangeError('닉네임 변경 중 오류가 발생했습니다.');
+    if (updateError) {
+      console.error('닉네임 변경 실패:', updateError.message)
+      setError('닉네임 변경 중 오류가 발생했습니다.')
     } else {
-      setSuccessMessage('닉네임이 성공적으로 변경되었습니다!');
-      setCurrentNickname(newNickname.trim());
-      setNewNickname('');
+      alert('닉네임이 성공적으로 변경되었습니다!')
+      setCurrentNickname(newNickname.trim())
+      setNewNickname('')
     }
 
-    setNicknameChangeLoading(false);
-  };
-
+    setLoading(false)
+  }
 
   if (pageLoading) {
-    return <div className="flex items-center justify-center min-h-screen bg-white"><p>정보를 불러오는 중...</p></div>;
+    return <div className="text-center py-20">로딩 중...</div>
   }
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">
-        <div className="w-full max-w-sm p-6 bg-gray-50 shadow-md rounded-lg">
-          <h1 className="text-2xl font-bold mb-6 text-center">로그인 (닉네임 변경)</h1>
-          <form onSubmit={handleLogin}>
-            <label className="block mb-2 text-sm">이메일</label>
-            <input type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="p-2 border rounded w-full mb-4" required />
-            <label className="block mb-2 text-sm">비밀번호</label>
-            <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="p-2 border rounded w-full mb-4" required />
-            {loginError && <p className="text-red-500 text-sm mb-4">{loginError}</p>}
-            <button type="submit" disabled={loginLoading} className="bg-blue-600 text-white px-4 py-2 w-full rounded">{loginLoading ? '로그인 중...' : '로그인'}</button>
-          </form>
-        </div>
+      <div className="text-center py-20">
+        로그인된 사용자가 없습니다. <br />
+        <button
+          onClick={() => router.push('/')}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          홈으로 가기
+        </button>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-white text-gray-800">
       <div className="w-full max-w-sm p-6 bg-gray-50 shadow-md rounded-lg">
-        <h1 className="text-2xl font-bold mb-2 text-center">닉네임 변경</h1>
-        <p className="text-sm text-gray-600 mb-4 text-center">현재 닉네임: <strong>{currentNickname || '정보 없음'}</strong></p>
-        <form onSubmit={handleNicknameChange}>
-          <label className="block mb-2 text-sm">새 닉네임</label>
-          <input type="text" value={newNickname} onChange={(e) => setNewNickname(e.target.value)} onBlur={() => newNickname && validateAndCheckNewNickname(newNickname)} className="p-2 border rounded w-full mb-4" required />
-          {nicknameChangeError && <p className="text-red-500 text-sm mb-2">{nicknameChangeError}</p>}
-          {successMessage && <p className="text-green-600 text-sm mb-2">{successMessage}</p>}
-          <button type="submit" disabled={nicknameChangeLoading || !newNickname || !!nicknameChangeError} className="bg-black text-white px-4 py-2 w-full rounded">
-            {nicknameChangeLoading ? '변경 중...' : '닉네임 변경하기'}
-          </button>
-        </form>
-        <p className="text-sm text-center mt-4">
-          <Link href="/" className="text-blue-600 hover:underline">홈으로 돌아가기</Link>
+        <h1 className="text-2xl font-bold mb-6 text-center">닉네임 변경</h1>
+        <p className="mb-4 text-sm text-center">
+          현재 닉네임: <span className="font-semibold">{currentNickname}</span>
         </p>
+        <input
+          type="text"
+          placeholder="새 닉네임 입력"
+          value={newNickname}
+          onChange={(e) => setNewNickname(e.target.value)}
+          className="p-2 border border-gray-300 rounded w-full mb-4"
+        />
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+        <button
+          onClick={handleChangeNickname}
+          disabled={loading}
+          className="bg-black text-white px-4 py-2 rounded w-full hover:bg-gray-800 disabled:bg-gray-400"
+        >
+          {loading ? '변경 중...' : '닉네임 변경'}
+        </button>
       </div>
     </div>
-  );
+  )
 }

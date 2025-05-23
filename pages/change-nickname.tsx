@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useRouter } from 'next/router'
+import type { User } from '@supabase/supabase-js' // User 타입 임포트
 
 export default function ChangeNickname() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null) // User 또는 null 타입 명시
   const [currentNickname, setCurrentNickname] = useState('')
   const [newNickname, setNewNickname] = useState('')
   const [error, setError] = useState('')
@@ -47,15 +48,18 @@ export default function ChangeNickname() {
 
     getInitialData();
 
-    // ★★★ onAuthStateChange 리스너 제거됨 ★★★
-    // 이 페이지에서는 직접적인 auth 상태 변화를 실시간으로 감지하여
-    // 닉네임을 다시 가져올 필요가 적으므로 제거했습니다.
-    // 만약 이 페이지에서 로그인/로그아웃 상태 변화에 따라 즉시 닉네임을 업데이트해야 한다면
-    // 해당 로직을 다시 추가하되, 불필요한 반복 쿼리가 발생하지 않도록 신중하게 구현해야 합니다.
-  }, []); // ✅ 빈 배열로 수정하여 단 1회만 실행
+    // onAuthStateChange 리스너 제거됨 (이전 논의에서 불필요하다고 판단)
+  }, []); // 빈 배열로 수정하여 단 1회만 실행
 
   const handleChangeNickname = async () => {
     setError('')
+    // ★★★ user.id 에러 해결: 함수 시작 시 user가 null인지 다시 확인 ★★★
+    if (!user) {
+      setError('사용자 정보가 없어 닉네임을 변경할 수 없습니다. 다시 로그인 해주세요.');
+      setLoading(false); // 로딩 상태가 true로 되어있을 수도 있으니 false로 설정
+      return;
+    }
+
     if (!newNickname || newNickname.trim().length < 2 || newNickname.length > 10) {
       setError('닉네임은 2자 이상 10자 이하로 입력해주세요.')
       return
@@ -88,6 +92,7 @@ export default function ChangeNickname() {
     }
 
     // 닉네임 업데이트
+    // 이 시점에는 user가 null이 아님이 TypeScript에 명시적으로 알려졌으므로 user.id 사용 가능
     const { error: updateError } = await supabase
       .from('users')
       .update({ nickname: newNickname.trim() })
@@ -114,7 +119,9 @@ export default function ChangeNickname() {
       <div className="text-center py-20">
         로그인된 사용자가 없습니다. <br />
         <button
-          onClick={() => router.push('/')}
+          // ★★★ router 에러가 계속되면 아래처럼 변경해보세요.
+          // onClick={() => router!.push('/')} 
+          onClick={() => router.push('/')} // 일반적으로는 이대로 문제 없습니다.
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
         >
           홈으로 가기

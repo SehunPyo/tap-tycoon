@@ -1,14 +1,14 @@
 // pages/change-nickname.tsx
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useRouter } from 'next/router'; // useRouter는 로그인 실패 시 리디렉션에 사용될 수 있으므로 유지
+import { useRouter } from 'next/router';
 import Link from 'next/link';
-import type { User, AuthError } from '@supabase/supabase-js'; // Session 타입 임포트는 필요 없어지므로 제거
+import type { User, AuthError } from '@supabase/supabase-js';
 
 export default function ChangeNicknamePage() {
-  const router = useRouter(); 
-  const [user, setUser] = useState<User | null>(null); 
-  // const [session, setSession] = useState<Session | null>(null); // 'session' 상태 제거 완료
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  // const [session, setSession] = useState<Session | null>(null); // 더 이상 사용되지 않는 'session' 변수 제거
 
   // 로그인 폼 상태
   const [loginEmail, setLoginEmail] = useState('');
@@ -22,7 +22,7 @@ export default function ChangeNicknamePage() {
   const [nicknameChangeError, setNicknameChangeError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [nicknameChangeLoading, setNicknameChangeLoading] = useState(false);
-  
+
   const [pageLoading, setPageLoading] = useState(true);
 
   const handleAuthError = (authError: AuthError | null, context: 'login' | 'signup' = 'login') => {
@@ -60,28 +60,28 @@ export default function ChangeNicknamePage() {
   };
 
   useEffect(() => {
-    const getInitialUser = async () => { 
-      const { data: { user: initialUser }, error: initialUserError } = await supabase.auth.getUser(); 
-      if (initialUserError) { 
-          console.error('초기 사용자 정보 가져오기 오류:', initialUserError.message);
+    const getInitialUser = async () => {
+      const { data: { user: initialUser }, error: initialUserError } = await supabase.auth.getUser();
+      if (initialUserError) {
+        console.error('초기 사용자 정보 가져오기 오류:', initialUserError.message);
       }
       if (initialUser) {
         await fetchUserAndNickname(initialUser);
       } else {
-        setUser(null); 
+        setUser(null);
         setCurrentNickname('');
       }
       setPageLoading(false);
     };
-    getInitialUser(); 
+    getInitialUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
       // newSession의 user 속성을 직접 사용하고, user 상태를 업데이트
       if (newSession?.user) {
         if (!user || user.id !== newSession.user.id) { // user가 변경된 경우에만 다시 로드
-            setPageLoading(true); 
-            await fetchUserAndNickname(newSession.user);
-            setPageLoading(false);
+          setPageLoading(true);
+          await fetchUserAndNickname(newSession.user);
+          setPageLoading(false);
         }
       } else { // 세션이 없거나 로그아웃된 경우
         setUser(null);
@@ -132,7 +132,7 @@ export default function ChangeNicknamePage() {
       .from('users')
       .select('nickname')
       .eq('nickname', trimmedName)
-      .neq('id', user?.id) 
+      .neq('id', user?.id)
       .maybeSingle();
     setNicknameChangeLoading(false);
 
@@ -145,7 +145,7 @@ export default function ChangeNicknamePage() {
     return true;
   };
 
-  const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => { 
+  const handleNicknameChange = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
       setNicknameChangeError('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.'); return;
@@ -168,8 +168,8 @@ export default function ChangeNicknamePage() {
       setNicknameChangeError('닉네임 변경 중 오류가 발생했습니다.');
     } else {
       setSuccessMessage('닉네임이 성공적으로 변경되었습니다!');
-      setCurrentNickname(newNickname.trim()); 
-      setNewNickname(''); 
+      setCurrentNickname(newNickname.trim());
+      setNewNickname('');
     }
     setNicknameChangeLoading(false);
   };
@@ -225,7 +225,7 @@ export default function ChangeNicknamePage() {
       <div className="w-full max-w-sm p-6 bg-gray-50 shadow-md rounded-lg">
         <h1 className="text-2xl font-bold mb-2 text-center">닉네임 변경</h1>
         <p className="text-sm text-gray-600 mb-4 text-center">현재 닉네임: <strong>{currentNickname || '정보 없음'}</strong></p>
-        
+
         <form onSubmit={handleNicknameChange}>
           <div className="mb-4">
             <label htmlFor="newNicknameInput" className="block text-sm font-medium text-gray-700 mb-1">새 닉네임</label>

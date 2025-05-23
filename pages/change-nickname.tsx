@@ -1,14 +1,14 @@
 // pages/change-nickname.tsx
 import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useRouter } from 'next/router'; // useRouter 임포트 (만약 router를 사용한다면)
+import { useRouter } from 'next/router'; // useRouter는 로그인 실패 시 리디렉션에 사용될 수 있으므로 유지
 import Link from 'next/link';
-import type { User, AuthError } from '@supabase/supabase-js'; // Session 타입 임포트 제거
+import type { User, AuthError } from '@supabase/supabase-js'; // Session 타입 임포트는 필요 없어지므로 제거
 
 export default function ChangeNicknamePage() {
-  // const router = useRouter(); // router를 사용하지 않는다면 제거 유지
+  const router = useRouter(); 
   const [user, setUser] = useState<User | null>(null); 
-  // const [session, setSession] = useState<Session | null>(null); // 'session' 상태 제거
+  // const [session, setSession] = useState<Session | null>(null); // 'session' 상태 제거 완료
 
   // 로그인 폼 상태
   const [loginEmail, setLoginEmail] = useState('');
@@ -60,44 +60,39 @@ export default function ChangeNicknamePage() {
   };
 
   useEffect(() => {
-    const getInitialSession = async () => {
-      const { data: { session: initialSession }, error: initialSessionError } = await supabase.auth.getSession();
-      // setSession(initialSession); // 'session' 상태 제거되었으므로 이 줄은 제거
-      if (initialSessionError) { 
-          console.error('초기 세션 가져오기 오류:', initialSessionError.message);
+    const getInitialUser = async () => { 
+      const { data: { user: initialUser }, error: initialUserError } = await supabase.auth.getUser(); 
+      if (initialUserError) { 
+          console.error('초기 사용자 정보 가져오기 오류:', initialUserError.message);
       }
-      if (initialSession?.user) {
-        await fetchUserAndNickname(initialSession.user);
+      if (initialUser) {
+        await fetchUserAndNickname(initialUser);
       } else {
-        // 초기 로드 시 세션이 없으면 user를 null로 설정 (안전성 강화)
         setUser(null); 
         setCurrentNickname('');
       }
       setPageLoading(false);
     };
-    getInitialSession();
+    getInitialUser(); 
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      // setSession(newSession); // 'session' 상태 제거되었으므로 이 줄은 제거
+      // newSession의 user 속성을 직접 사용하고, user 상태를 업데이트
       if (newSession?.user) {
-        if (!user || user.id !== newSession.user.id) { 
+        if (!user || user.id !== newSession.user.id) { // user가 변경된 경우에만 다시 로드
             setPageLoading(true); 
             await fetchUserAndNickname(newSession.user);
             setPageLoading(false);
         }
-      } else {
+      } else { // 세션이 없거나 로그아웃된 경우
         setUser(null);
         setCurrentNickname('');
-        // 로그아웃 시 로그인 폼으로 돌아가게 하려면 router.push('/change-nickname'); (자기 자신으로 리디렉션)
-        // 또는 router.push('/'); (홈으로 리디렉션)
-        // 여기서는 user 상태를 null로 만들면 자동으로 로그인 폼이 렌더링됨
       }
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
-  }, [user]); 
+  }, [user]); // 의존성 배열에 user를 넣으면 user 객체가 변경될 때마다 useEffect가 다시 실행됨
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,7 +107,7 @@ export default function ChangeNicknamePage() {
     if (error) {
       handleAuthError(error, 'login');
     } else if (data.user) {
-      // onAuthStateChange가 user를 업데이트하고, useEffect가 fetchUserAndNickname을 호출할 것임
+      // onAuthStateChange 리스너가 user 상태를 업데이트하고, useEffect가 나머지 로직을 처리할 것임
     } else {
       setLoginError('로그인에 실패했습니다. (사용자 정보 없음)');
     }
@@ -187,7 +182,6 @@ export default function ChangeNicknamePage() {
     );
   }
 
-  // 로그인 폼 표시 조건: user 객체가 없을 때 (즉, 로그인 안 된 상태)
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-white text-gray-800">

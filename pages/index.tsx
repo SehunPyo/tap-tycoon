@@ -12,7 +12,7 @@ const sectionsData: SectionProps[] = [
   {
     title: 'Version',
     emoji: '🔧',    
-    version: '1.0.5',
+    version: '2.0.1',
     items: []
   },
   {

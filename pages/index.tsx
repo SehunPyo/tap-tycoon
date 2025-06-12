@@ -75,89 +75,89 @@ const updatesData = [
 ];
 
 const GameGuide = () => {
-    const [activeTab, setActiveTab] = useState('assets');
+  const [activeTab, setActiveTab] = useState('assets');
 
-    const tabs = [
-        { id: 'assets', label: '자산 시스템' },
-        { id: 'arcade', label: '오락실 상세' },
-        { id: 'halloffame', label: '명예의 전당' },
-    ];
+  const tabs = [
+    { id: 'assets', label: '자산 시스템' },
+    { id: 'arcade', label: '오락실 상세' },
+    { id: 'halloffame', label: '명예의 전당' },
+  ];
 
-    return (
-        <div>
-            <div className="border-b border-gray-200 mb-4">
-                <nav className="-mb-px flex space-x-6">
-                    {tabs.map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors
-                                ${activeTab === tab.id
-                                    ? 'border-indigo-500 text-indigo-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`
-                            }
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
+  return (
+    <div>
+      <div className="border-b border-gray-200 mb-4">
+        <nav className="-mb-px flex space-x-6">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors
+                ${activeTab === tab.id
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`
+              }
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      <div className="text-sm">
+        {activeTab === 'assets' && (
+          <div className="space-y-4">
+            <p>당신의 재산은 <b>💰코인(현금)</b>과 <b>💼총 자산(랭킹 기준)</b>으로 관리됩니다. 아래 표를 통해 활동별 자산 변동을 확인하세요.</p>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">활동</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">💰 코인</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">💼 총 자산</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <tr><td className="px-4 py-2">타이핑 수익</td><td className="px-4 py-2 text-green-600">▲ 증가</td><td className="px-4 py-2 text-green-600">▲ 증가</td></tr>
+                  <tr><td className="px-4 py-2">건물 구매/업그레이드</td><td className="px-4 py-2 text-red-600">▼ 감소</td><td className="px-4 py-2 font-semibold">변동 없음</td></tr>
+                  <tr><td className="px-4 py-2">건물 되팔기 (수수료 20%)</td><td className="px-4 py-2 text-green-600">▲ 증가 (80%)</td><td className="px-4 py-2 text-red-600">▼ 감소 (20%)</td></tr>
+                  <tr><td className="px-4 py-2">건물 자동 수익</td><td className="px-4 py-2 text-green-600">▲ 증가</td><td className="px-4 py-2 text-green-600">▲ 증가</td></tr>
+                  <tr><td className="px-4 py-2">상점 아이템 구매</td><td className="px-4 py-2 text-red-600">▼ 감소</td><td className="px-4 py-2 text-red-600">▼ 감소</td></tr>
+                  <tr><td className="px-4 py-2">오락실 게임 참여</td><td className="px-4 py-2 text-red-600">▼ 감소</td><td className="px-4 py-2 text-red-600">▼ 감소</td></tr>
+                  <tr><td className="px-4 py-2">오락실 상금 획득</td><td className="px-4 py-2 text-green-600">▲ 증가</td><td className="px-4 py-2 text-green-600">▲ 증가</td></tr>
+                </tbody>
+              </table>
             </div>
-            
-            <div className="text-sm">
-                {activeTab === 'assets' && (
-                    <div className="space-y-4">
-                        <p>당신의 재산은 <b>💰코인(현금)</b>과 <b>💼총 자산(랭킹 기준)</b>으로 관리됩니다. 아래 표를 통해 활동별 자산 변동을 확인하세요.</p>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">활동</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">💰 코인</th>
-                                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">💼 총 자산</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    <tr><td className="px-4 py-2">타이핑 수익</td><td className="px-4 py-2 text-green-600">▲ 증가</td><td className="px-4 py-2 text-green-600">▲ 증가</td></tr>
-                                    <tr><td className="px-4 py-2">건물 구매/업그레이드</td><td className="px-4 py-2 text-red-600">▼ 감소</td><td className="px-4 py-2 font-semibold">변동 없음</td></tr>
-                                    <tr><td className="px-4 py-2">건물 되팔기 (수수료 20%)</td><td className="px-4 py-2 text-green-600">▲ 증가 (80%)</td><td className="px-4 py-2 text-red-600">▼ 감소 (20%)</td></tr>
-                                    <tr><td className="px-4 py-2">건물 자동 수익</td><td className="px-4 py-2 text-green-600">▲ 증가</td><td className="px-4 py-2 text-green-600">▲ 증가</td></tr>
-                                    <tr><td className="px-4 py-2">상점 아이템 구매</td><td className="px-4 py-2 text-red-600">▼ 감소</td><td className="px-4 py-2 text-red-600">▼ 감소</td></tr>
-                                    <tr><td className="px-4 py-2">오락실 게임 참여</td><td className="px-4 py-2 text-red-600">▼ 감소</td><td className="px-4 py-2 text-red-600">▼ 감소</td></tr>
-                                    <tr><td className="px-4 py-2">오락실 상금 획득</td><td className="px-4 py-2 text-green-600">▲ 증가</td><td className="px-4 py-2 text-green-600">▲ 증가</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )}
-                {activeTab === 'arcade' && (
-                    <div className="space-y-4">
-                        <p>오락실에서 사용한 모든 금액은 '이달의 오락왕' 랭킹에 집계됩니다.</p>
-                        <ul className="list-disc pl-5 space-y-3">
-                            <li><b>배팅:</b> 배팅액이 클수록 상금도 커지지만, 성공 확률은 낮아집니다. 고위험 고수익에 도전하세요!</li>
-                            <li><b>낚시 (참가비 3,000):</b> 60% 확률로 성공하며, 희귀한 보물상자(최대 100만 코인)를 낚을 수도 있습니다.</li>
-                            <li><b>더블 or Nothing (참가비 3,000):</b> 첫 성공 확률은 70%! 이후 50% 확률로 상금이 2배가 됩니다. 짜릿한 연속 성공에 도전하세요.</li>
-                            <li><b>룰렛 (참가비 10,000):</b> 5명이 모이면 시작! 단 한 명의 승자가 60,000 코인을 독차지합니다.</li>
-                        </ul>
-                    </div>
-                )}
-                {activeTab === 'halloffame' && (
-                     <div className="space-y-3">
-                        <p>각 분야 최고의 플레이어는 명예의 전당에 오릅니다.</p>
-                        <ul className="list-disc pl-5 space-y-2">
-                           <li><b>타이핑의 신:</b> 순수 타이핑으로 가장 많은 수익을 올린 플레이어.</li>
-                           <li><b>최고의 땅부자:</b> 가장 많은 수의 건물을 보유한 플레이어.</li>
-                           <li><b>이달의 오락왕:</b> 해당 월에 오락실에서 가장 많은 코인을 사용한 플레이어.</li>
-                        </ul>
-                        <div className="mt-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-r-lg">
-                            <p className="font-bold">👑 특별 혜택!</p>
-                            <p>'이달의 오락왕' TOP 3에게는 다음 달 초기화 전까지 모든 타이핑 수익이 <b>1.5배 증가</b>하는 '도박왕의 은총' 버프가 주어집니다!</p>
-                        </div>
-                    </div>
-                )}
+          </div>
+        )}
+        {activeTab === 'arcade' && (
+          <div className="space-y-4">
+            <p>오락실에서 사용한 모든 금액은 &lsquo;이달의 오락왕&rsquo; 랭킹에 집계됩니다.</p>
+            <ul className="list-disc pl-5 space-y-3">
+              <li><b>배팅:</b> 배팅액이 클수록 상금도 커지지만, 성공 확률은 낮아집니다. 고위험 고수익에 도전하세요!</li>
+              <li><b>낚시 (참가비 3,000):</b> 60% 확률로 성공하며, 희귀한 보물상자(최대 100만 코인)를 낚을 수도 있습니다.</li>
+              <li><b>더블 or Nothing (참가비 3,000):</b> 첫 성공 확률은 70%! 이후 50% 확률로 상금이 2배가 됩니다. 짜릿한 연속 성공에 도전하세요.</li>
+              <li><b>룰렛 (참가비 10,000):</b> 5명이 모이면 시작! 단 한 명의 승자가 60,000 코인을 독차지합니다.</li>
+            </ul>
+          </div>
+        )}
+        {activeTab === 'halloffame' && (
+          <div className="space-y-3">
+            <p>각 분야 최고의 플레이어는 명예의 전당에 오릅니다.</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li><b>타이핑의 신:</b> 순수 타이핑으로 가장 많은 수익을 올린 플레이어.</li>
+              <li><b>최고의 땅부자:</b> 가장 많은 수의 건물을 보유한 플레이어.</li>
+              <li><b>이달의 오락왕:</b> 해당 월에 오락실에서 가장 많은 코인을 사용한 플레이어.</li>
+            </ul>
+            <div className="mt-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-r-lg">
+              <p className="font-bold">👑 특별 혜택!</p>
+              <p>&lsquo;이달의 오락왕&rsquo; TOP 3에게는 다음 달 초기화 전까지 모든 타이핑 수익이 <b>1.5배 증가</b>하는 &lsquo;도박왕의 은총&rsquo; 버프가 주어집니다!</p>
             </div>
-        </div>
-    );
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 
@@ -194,9 +194,9 @@ export default function Home() {
       {/* --- Game Guide Section --- */}
       <section className="w-full bg-white border-t border-b">
         <div className="container mx-auto px-4 py-16 max-w-4xl">
-           <h2 className="text-3xl font-bold text-center mb-2">게임 가이드</h2>
-           <p className="text-center text-slate-500 mb-8">Tap Tycoon의 핵심 시스템을 알아보세요.</p>
-           <GameGuide />
+          <h2 className="text-3xl font-bold text-center mb-2">게임 가이드</h2>
+          <p className="text-center text-slate-500 mb-8">Tap Tycoon의 핵심 시스템을 알아보세요.</p>
+          <GameGuide />
         </div>
       </section>
 

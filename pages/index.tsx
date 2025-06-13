@@ -97,7 +97,8 @@ export default function HomePage() {
           
           <AccordionItem title="펫 시스템: 나의 소중한 동반자" emoji="🐾">
             <div className="space-y-4">
-              <p>상점에서 '펫 분양권'을 구매하여 새로운 가족을 맞이하세요. 펫은 단순한 장식품이 아닌, 당신의 관심과 사랑으로 성장하는 살아있는 동반자입니다.</p>
+              {/* 🚨 수정된 부분 */}
+              <p>상점에서 <strong>&apos;펫 분양권&apos;</strong>을 구매하여 새로운 가족을 맞이하세요. 펫은 단순한 장식품이 아닌, 당신의 관심과 사랑으로 성장하는 살아있는 동반자입니다.</p>
               <div>
                 <h4 className="font-bold text-md mb-1">펫의 6대 스탯 관리</h4>
                 <p className="text-sm text-gray-600 mb-2">모든 스탯은 0~100 사이 값을 가집니다. 시간이 지나면 스탯은 자연적으로 감소하니 꾸준히 돌봐주세요!</p>
@@ -117,16 +118,20 @@ export default function HomePage() {
           </AccordionItem>
 
           <AccordionItem title="펫샵과 나만의 픽셀 펫 창조" emoji="🎨">
+            {/* 🚨 수정된 부분 */}
             <p className="mb-4">상점에서 <strong>&apos;펫샵 운영 허가서&apos;</strong>를 구매하면 당신만의 펫샵을 열 수 있습니다. 펫샵에서는 당신이 직접 만든 커스텀 펫을 다른 유저에게 판매할 수 있습니다!</p>
             <ul className="list-disc pl-5 space-y-3">
               <li><strong>픽셀 아트 에디터:</strong> 게임 내 32x32 픽셀 에디터를 사용하여 상상 속의 펫을 직접 그려보세요. 색상 선택, 채우기, 지우개 등 다양한 툴이 제공됩니다.</li>
-              <li><strong>커스텀 펫 등록:</strong> 완성된 펫에게 이름, 가격, 성격, 성별을 부여하여 당신의 펫샵에 등록하세요. 기본 3개의 판매 슬롯이 제공되며, &apos;펫 등록 토큰&apos; 아이템으로 슬롯을 늘릴 수 있습니다.</li>
+              {/* 🚨 수정된 부분 */}
+              <li><strong>커스텀 펫 등록:</strong> 완성된 펫에게 이름, 가격, 성격, 성별을 부여하여 당신의 펫샵에 등록하세요. 기본 3개의 판매 슬롯이 제공되며, <strong>&apos;펫 등록 토큰&apos;</strong> 아이템으로 슬롯을 늘릴 수 있습니다.</li>
               <li><strong>펫 거래:</strong> 다른 유저의 펫샵을 방문하여 독특한 커스텀 펫을 구경하고 구매할 수 있습니다. 내가 소유한 펫이 없다면, 다른 유저의 펫을 분양받아 새로운 동반자로 맞이할 수 있습니다.</li>
+              {/* 🚨 수정된 부분 */}
               <li><strong>특별한 아이템:</strong> 커스텀 펫은 일반 펫과 식성이 다릅니다. 상점의 <strong>&apos;특별 용품&apos;</strong> 탭에서 커스텀 펫 전용 사료와 장난감을 구매하여 먹이거나 놀아줄 수 있습니다.</li>
             </ul>
           </AccordionItem>
           
           <AccordionItem title="오락실: 인생은 한 방!" emoji="🎰">
+            {/* 🚨 수정된 부분 */}
             <p className="mb-4">짜릿한 손맛과 대박의 꿈! 오락실에서 다양한 미니게임으로 코인을 불려보세요. 여기서 사용한 코인은 &apos;이달의 오락왕&apos; 랭킹에 집계됩니다.</p>
             <div className="space-y-3">
               <h4 className="font-bold">① 배팅</h4>
@@ -134,17 +139,21 @@ export default function HomePage() {
               <h4 className="font-bold">② 낚시터</h4>
               <p className="text-sm"><strong>참가비 3,000원.</strong> 60% 확률로 무언가를 낚습니다. 해초나 깡통 같은 잡동사니부터, 수백만 코인 가치의 전설의 고래까지! 운이 좋다면 <strong>최대 100만 코인</strong>이 든 보물상자를 낚을 수도 있습니다.</p>
               <h4 className="font-bold">③ 더블</h4>
+              {/* 🚨 수정된 부분 */}
               <p className="text-sm"><strong>참가비 3,000원.</strong> 2,000원의 상금으로 시작합니다. &apos;더블&apos; 성공 시 상금은 2배가 됩니다. 첫 도전 성공 확률은 70%, 그 이후부터는 50%입니다. 언제든지 &apos;상금 받기&apos;로 탈출할 수 있지만, 실패 시 모든 상금을 잃습니다.</p>
               <h4 className="font-bold">④ 룰렛</h4>
+              {/* 🚨 수정된 부분 */}
               <p className="text-sm"><strong>참가비 10,000원.</strong> 총 5명의 유저가 참여하면 게임이 시작됩니다. 단 한 명의 승자가 <strong>상금 60,000원</strong>을 모두 가져갑니다! 참가하고 결과를 기다리세요.</p>
             </div>
           </AccordionItem>
 
           <AccordionItem title="상점, 아이템, 그리고 타이틀" emoji="🛍️">
+            {/* 🚨 수정된 부분 */}
             <p className="mb-4">상점에서는 게임 플레이에 도움이 되는 다양한 아이템과 당신을 뽐낼 수 있는 특별한 &apos;타이틀&apos;을 구매할 수 있습니다.</p>
             <ul className="list-disc pl-5 space-y-2">
               <li><strong>버닝 아이템:</strong> 사용 시 정해진 시간 동안 타이핑으로 얻는 코인 획득률이 대폭 증가합니다.</li>
               <li><strong>펫 관련 용품:</strong> 사료, 간식, 장난감, 잠자리, 관리용품 등 펫을 돌보는 데 필요한 모든 것을 판매합니다. 일부 장난감 등은 소모품이 아닌 내구도 방식입니다.</li>
+              {/* 🚨 수정된 부분 */}
               <li><strong>타이틀:</strong> 랭킹에 표시되는 당신의 닉네임에 특별한 수식어를 붙일 수 있습니다. 비싼 타이틀일수록 화려한 애니메이션 효과가 적용됩니다! 인벤토리에서 자유롭게 장착/해제할 수 있습니다.</li>
             </ul>
           </AccordionItem>
@@ -154,10 +163,12 @@ export default function HomePage() {
             <ul className="list-disc pl-5 space-y-2 mb-4">
               <li><strong>타이핑의 신:</strong> 월간 누적 타이핑 수익으로 순위가 결정됩니다.</li>
               <li><strong>최고의 땅부자:</strong> 월간 총 자산(코인+건물가치)으로 순위가 결정됩니다.</li>
+              {/* 🚨 수정된 부분 */}
               <li><strong>이달의 오락왕:</strong> 월간 오락실에서 사용한 코인의 총합으로 순위가 결정됩니다.</li>
             </ul>
             <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-r-lg">
-              <strong>✨ 오락왕 버프:</strong> '이달의 오락왕' 랭킹 1위에게는 다음 달 한 달간 <strong>타이핑 수익 1.5배</strong>의 강력한 버프가 주어집니다!
+              {/* 🚨 수정된 부분 */}
+              <strong>✨ 오락왕 버프:</strong> &apos;이달의 오락왕&apos; 랭킹 1위에게는 다음 달 한 달간 <strong>타이핑 수익 1.5배</strong>의 강력한 버프가 주어집니다!
             </div>
           </AccordionItem>
 

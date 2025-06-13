@@ -137,7 +137,7 @@ export default function HomePage() {
               <h4 className="font-bold">① 배팅</h4>
               <p className="text-sm">정해진 확률에 따라 승패가 결정됩니다. 고액 베팅일수록 당첨금 배율이 높아집니다! (예: 500원 베팅 시 1/2 확률로 1,500원 획득)</p>
               <h4 className="font-bold">② 낚시터</h4>
-              <p className="text-sm"><strong>참가비 3,000원.</strong> 60% 확률로 무언가를 낚습니다. 해초나 깡통 같은 잡동사니부터, 수백만 코인 가치의 전설의 고래까지! 운이 좋다면 <strong>최대 100만 코인</strong>이 든 보물상자를 낚을 수도 있습니다.</p>
+              <p className="text-sm"><strong>참가비 3,000원.</strong> 일단 무언가를 낚습니다. 해초나 깡통 같은 잡동사니부터, 수백만 코인 가치의 전설의 고래까지! 운이 좋다면 <strong>최대 100만 코인</strong>이 든 보물상자를 낚을 수도 있습니다.</p>
               <h4 className="font-bold">③ 더블</h4>
               {/* 🚨 수정된 부분 */}
               <p className="text-sm"><strong>참가비 3,000원.</strong> 2,000원의 상금으로 시작합니다. &apos;더블&apos; 성공 시 상금은 2배가 됩니다. 첫 도전 성공 확률은 70%, 그 이후부터는 50%입니다. 언제든지 &apos;상금 받기&apos;로 탈출할 수 있지만, 실패 시 모든 상금을 잃습니다.</p>
